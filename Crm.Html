@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laxmi Ganga Bhavani - Client Lead Management System</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans antialiased min-h-screen flex flex-col">
+
+    <nav class="bg-gray-950 border-b border-gray-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-indigo-600 rounded-lg text-white shadow-md">
+                    <i class="fas fa-users-cog text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight">LeadEngine CRM v1.0</h1>
+                    <p class="text-xs text-gray-400 font-mono">Developer: Laxmi Ganga Bhavani</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 font-mono text-xs">
+                <div class="bg-gray-900 border border-gray-800 px-3 py-1.5 rounded-md flex items-center gap-2">
+                    <span class="h-2 w-2 rounded-full bg-green-400 animate-pulse"></span>
+                    <span>DB Connection: Active</span>
+                </div>
+                <button id="flushDbBtn" class="bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-900/60 px-3 py-1.5 rounded-md transition duration-150">
+                    <i class="fas fa-database mr-1"></i> Drop DB Ledger
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <section class="lg:col-span-1">
+            <div class="bg-gray-950 border border-gray-800 rounded-xl p-6 shadow-2xl sticky top-24">
+                <h2 class="text-xl font-bold mb-1 flex items-center gap-2">
+                    <i class="fas fa-user-plus text-indigo-400 text-base"></i> Ingest New Client Lead
+                </h2>
+                <p class="text-xs text-gray-400 font-mono mb-6">Pipeline submission form models standard API POST endpoints.</p>
+                
+                <form id="leadIngestionForm" class="space-y-4 font-sans text-sm">
+                    <div>
+                        <label class="block text-xs font-mono text-gray-400 uppercase mb-1">Company / Client Name</label>
+                        <input type="text" id="clientName" required class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="Acme Corporation">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-gray-400 uppercase mb-1">Primary Routing Email</label>
+                        <input type="email" id="clientEmail" required class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="contact@acme.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-gray-400 uppercase mb-1">Pipeline Deal Value ($ USD)</label>
+                        <input type="number" id="dealValue" required min="0" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition" placeholder="5000">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-mono text-gray-400 uppercase mb-1">Initial Funnel Stage</label>
+                        <select id="leadStage" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+                            <option value="Lead Secured">Lead Secured (Discovery)</option>
+                            <option value="In Discussion">In Discussion (Negotiation)</option>
+                            <option value="Proposal Issued">Proposal Issued</option>
+                            <option value="Contract Finalized">Contract Finalized (Closed)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-lg shadow-lg transition duration-150 flex items-center justify-center gap-2">
+                        <i class="fas fa-arrow-alt-circle-right"></i> Commit Lead to DB
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <section class="lg:col-span-2 space-y-6">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="bg-gray-950 border border-gray-800 rounded-xl p-4 flex justify-between items-center shadow-lg">
+                    <div>
+                        <p class="text-xs font-mono text-gray-400 uppercase">Total Accounts</p>
+                        <p id="metricCount" class="text-2xl font-bold mt-1 text-indigo-400">0</p>
+                    </div>
+                    <i class="fas fa-folder-open text-gray-700 text-2xl"></i>
+                </div>
+                <div class="bg-gray-950 border border-gray-800 rounded-xl p-4 flex justify-between items-center shadow-lg">
+                    <div>
+                        <p class="text-xs font-mono text-gray-400 uppercase">Pipeline Value</p>
+                        <p id="metricValue" class="text-2xl font-bold mt-1 text-emerald-400">$0</p>
+                    </div>
+                    <i class="fas fa-hand-holding-usd text-gray-700 text-2xl"></i>
+                </div>
+                <div class="bg-gray-950 border border-gray-800 rounded-xl p-4 flex justify-between items-center shadow-lg">
+                    <div>
+                        <p class="text-xs font-mono text-gray-400 uppercase">System Status</p>
+                        <p class="text-sm font-bold mt-2 text-green-400 bg-green-950/50 border border-green-900/60 px-2 py-0.5 rounded w-max font-mono">SYNCHRONIZED</p>
+                    </div>
+                    <i class="fas fa-server text-gray-700 text-2xl"></i>
+                </div>
+            </div>
+
+            <div class="bg-gray-950 border border-gray-800 rounded-xl overflow-hidden shadow-2xl">
+                <div class="px-6 py-4 border-b border-gray-800 bg-gray-950/50 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-sm tracking-wide text-indigo-400 font-mono">SYS_LEAD_DATA_LEDGER</h3>
+                        <p class="text-[11px] text-gray-400 font-mono">Live mapping of application state inside LocalStorage transactional cache</p>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse font-mono text-xs">
+                        <thead class="bg-gray-900/60 text-gray-400 uppercase text-[10px] border-b border-gray-800">
+                            <tr>
+                                <th class="py-3 px-4 font-semibold">Row UID</th>
+                                <th class="py-3 px-4 font-semibold">Client Target</th>
+                                <th class="py-3 px-4 font-semibold">Routing Address</th>
+                                <th class="py-3 px-4 font-semibold">Pipeline Value</th>
+                                <th class="py-3 px-4 font-semibold">Stage Routing</th>
+                                <th class="py-3 px-4 font-semibold text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="crmDbTableBody" class="divide-y divide-gray-800/40">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div id="crmEmptyState" class="py-16 text-center text-gray-500 font-mono text-xs hidden">
+                    <i class="fas fa-database block text-2xl mb-3 text-gray-700"></i>
+                    No relational customer records active. Add a lead using the control deck panel.
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-950 border-t border-gray-800 py-4 text-center text-[11px] text-gray-500 font-mono">
+        &copy; 2026 Laxmi Ganga Bhavani. CRM Micro-Architecture Assignment Engine.
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('leadIngestionForm');
+            const tableBody = document.getElementById('crmDbTableBody');
+            const emptyState = document.getElementById('crmEmptyState');
+            const flushBtn = document.getElementById('flushDbBtn');
+            
+            const metricCount = document.getElementById('metricCount');
+            const metricValue = document.getElementById('metricValue');
+
+            // Default seed rows data structure if the system initializes fresh
+            const defaultMockDatabase = [
+                { id: "lead_7182901", name: "Global Tech Solutions", email: "info@globaltech.io", value: 12500, stage: "Proposal Issued" },
+                { id: "lead_3948102", name: "Alpha Retail Group", email: "billing@alpharg.com", value: 4200, stage: "In Discussion" }
+            ];
+
+            // Pipeline Execution: Synchronize and Read Database Storage State
+            function syncDatabaseView() {
+                let data = JSON.parse(localStorage.getItem('crm_leads'));
+                
+                if (!data) {
+                    localStorage.setItem('crm_leads', JSON.stringify(defaultMockDatabase));
+                    data = defaultMockDatabase;
+                }
+
+                if (data.length === 0) {
+                    tableBody.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    metricCount.textContent = '0';
+                    metricValue.textContent = '$0';
+                    return;
+                }
+
+                emptyState.classList.add('hidden');
+                
+                // Track Aggregated Summary Metrics Engine
+                let totalValue = 0;
+                tableBody.innerHTML = data.map(record => {
+                    const cleanValue = parseFloat(record.value) || 0;
+                    totalValue += cleanValue;
+
+                    // UI Badges mapping for dynamic visualization variables
+                    let badgeClass = "bg-blue-950 text-blue-400 border-blue-900/60";
+                    if (record.stage === "Contract Finalized") badgeClass = "bg-emerald-950 text-emerald-400 border-emerald-900/60";
+                    if (record.stage === "Proposal Issued") badgeClass = "bg-purple-950 text-purple-400 border-purple-900/60";
+
+                    return `
+                        <tr class="hover:bg-gray-900/30 transition">
+                            <td class="py-3 px-4 font-bold text-indigo-400">${record.id}</td>
+                            <td class="py-3 px-4 font-sans text-gray-200">${escapeOutput(record.name)}</td>
+                            <td class="py-3 px-4 text-gray-400">${escapeOutput(record.email)}</td>
+                            <td class="py-3 px-4 text-emerald-400 font-bold">$${cleanValue.toLocaleString()}</td>
+                            <td class="py-3 px-4">
+                                <span class="px-2 py-0.5 border rounded text-[10px] font-semibold font-sans ${badgeClass}">
+                                    ${record.stage}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-center">
+                                <button onclick="deleteLeadRecord('${record.id}')" class="text-gray-500 hover:text-red-400 transition p-1">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+
+                metricCount.textContent = data.length;
+                metricValue.textContent = `$${totalValue.toLocaleString()}`;
+            }
+
+            // Pipeline Write Handler: Post New Database Operations Array
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const nameInput = document.getElementById('clientName').value;
+                const emailInput = document.getElementById('clientEmail').value;
+                const valueInput = document.getElementById('dealValue').value;
+                const stageInput = document.getElementById('leadStage').value;
+
+                const newRow = {
+                    id: 'lead_' + Math.random().toString(36).substr(2, 7),
+                    name: nameInput,
+                    email: emailInput,
+                    value: parseFloat(valueInput) || 0,
+                    stage: stageInput
+                };
+
+                const dbSnapshot = JSON.parse(localStorage.getItem('crm_leads')) || [];
+                dbSnapshot.unshift(newRow);
+                localStorage.setItem('crm_leads', JSON.stringify(dbSnapshot));
+
+                form.reset();
+                syncDatabaseView();
+            });
+
+            // Delete Vector Pipeline Component
+            window.deleteLeadRecord = function(id) {
+                let dbSnapshot = JSON.parse(localStorage.getItem('crm_leads')) || [];
+                dbSnapshot = dbSnapshot.filter(item => item.id !== id);
+                localStorage.setItem('crm_leads', JSON.stringify(dbSnapshot));
+                syncDatabaseView();
+            };
+
+            // Global Transaction Cache Evacuation Sequence
+            flushBtn.addEventListener('click', () => {
+                if (confirm("System Alert: Are you sure you want to drop all records from the relational storage structure?")) {
+                    localStorage.setItem('crm_leads', JSON.stringify([]));
+                    syncDatabaseView();
+                }
+            });
+
+            // Prevent UI cross-script injection execution vulnerabilities 
+            function escapeOutput(str) {
+                return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+            }
+
+            // Initialization Step Ingestion Route
+            syncDatabaseView();
+        });
+    </script>
+</body>
+</html>
